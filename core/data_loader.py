@@ -64,31 +64,30 @@ def _load_jsonl(path: Optional[Path]) -> Optional[pd.DataFrame]:
 
 def _load_npz_embeddings_strict(path: Optional[Path]) -> np.ndarray:
     path = _coerce_path(path)
-    
-    # Tenta local primeiro
-    if path and path.exists():
-        try:
-            data = np.load(path, allow_pickle=False)
-            for k in data.files:
-                arr = data[k]
-                if isinstance(arr, np.ndarray) and arr.ndim == 2:
-                    return arr.astype(np.float32, copy=False)
-        except Exception as e:
-            print(f"[WARN] Erro ao carregar local {path}: {e}")
-    
-    # Fallback: tenta remoto via GitHub
-    filename = path.name if path else "unknown.npz"
-    if filename in EMBEDDINGS_FALLBACK_URLS:
-        url = EMBEDDINGS_FALLBACK_URLS[filename]
-        remote_arr = _download_embeddings_remote(filename, url)
-        if remote_arr is not None:
-            return remote_arr
-    
-    raise FileNotFoundError(f"Embeddings NPZ não encontrado (local ou remoto): {path}")
+    if not path or not path.exists():
+        raise FileNotFoundError(f"Embeddings NPZ não encontrado: {path}")
+
+    try:
+        data = np.load(path, allow_pickle=False)
+    except Exception as exc:
+        raise ValueError(
+            f"Não foi possível carregar o arquivo de embeddings {path}. "
+            "Verifique se os objetos do Git LFS foram baixados corretamente."
+        ) from exc
+
+    for k in data.files:
+        arr = data[k]
+        if isinstance(arr, np.ndarray) and arr.ndim == 2:
+            return arr.astype(np.float32, copy=False)
+
+    raise ValueError(f"NPZ inválido (nenhuma matriz 2D encontrada): {path}")
 
 
 def _load_labels_any(parquet_path: Optional[Path], jsonl_path: Optional[Path]) -> pd.DataFrame:
-    df = _load_parquet(parquet_path)
+    try:
+        df = _load_parquet(parquet_path)
+    except Exception:
+        df = None
     if df is not None:
         return df.reset_index(drop=True)
     df = _load_jsonl(jsonl_path)
@@ -218,7 +217,6 @@ def load_history() -> Tuple[pd.DataFrame, np.ndarray]:
     return df.iloc[:m].reset_index(drop=True), E[:m, :]
 
 
-@st.cache_data(show_spinner=False)
 @st.cache_data(show_spinner=False)
 def load_prompts_md(path: Path):
     # compatibilidade: app não usa diretamente, mas mantém para não quebrar imports

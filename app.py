@@ -4,6 +4,7 @@ from __future__ import annotations
 import sys
 import re
 from pathlib import Path
+from typing import Any
 
 ROOT_DIR = Path(__file__).resolve().parent
 if str(ROOT_DIR) not in sys.path:
@@ -77,6 +78,158 @@ def _safe_event_ids_from_hits(hits) -> list[str]:
         if s and s not in ids:
             ids.append(s)
     return ids
+
+
+def _canonical_event_id(value: Any) -> str:
+    s = str(value).strip() if value is not None else ""
+    if re.fullmatch(r"\d+\.0", s):
+        s = s[:-2]
+    return s.casefold()
+
+
+def _parse_event_ids(raw: str) -> list[str]:
+    raw = (raw or "").strip()
+    if not raw:
+        return []
+
+    parts = re.split(r"[\n,;]+", raw)
+    if len(parts) == 1:
+        parts = re.split(r"\s+", raw)
+
+    ids: list[str] = []
+    seen: set[str] = set()
+    for part in parts:
+        event_id = part.strip()
+        key = _canonical_event_id(event_id)
+        if event_id and key not in seen:
+            ids.append(event_id)
+            seen.add(key)
+    return ids
+
+
+def _row_text(row: Any, columns: list[str], default: str = "") -> str:
+    for col in columns:
+        try:
+            if hasattr(row, "get"):
+                value = row.get(col, "")
+            else:
+                value = ""
+        except Exception:
+            value = ""
+        text = str(value).strip() if value is not None else ""
+        if text and text.lower() != "nan":
+            return text
+    return default
+
+
+def _description_from_row(row: Any) -> str:
+    return _row_text(
+        row,
+        [
+            "Description", "DESCRIPTION", "DescriÃ§Ã£o", "DESCRIÃ‡ÃƒO",
+            "Observation", "OBSERVATION", "Resumo", "Summary",
+        ],
+    )
+
+
+def _lookup_sphera_events_by_ids(
+    df: pd.DataFrame | None,
+    event_ids: list[str],
+) -> tuple[list[tuple[str, pd.Series]], list[str]]:
+    if not event_ids:
+        return [], []
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty or "EventID" not in df.columns:
+        return [], event_ids
+
+    lookup: dict[str, int] = {}
+    for idx, value in df["EventID"].items():
+        key = _canonical_event_id(value)
+        if key and key not in lookup:
+            lookup[key] = int(idx)
+
+    found: list[tuple[str, pd.Series]] = []
+    missing: list[str] = []
+    for event_id in event_ids:
+        idx = lookup.get(_canonical_event_id(event_id))
+        if idx is None:
+            missing.append(event_id)
+            continue
+        row = df.loc[idx]
+        found.append((str(row.get("EventID", event_id)).strip(), row))
+
+    return found, missing
+
+
+def _safe_event_ids_from_event_rows(events: list[tuple[str, Any]]) -> list[str]:
+    ids: list[str] = []
+    for evid, _ in events or []:
+        s = str(evid).strip() if evid is not None else ""
+        if s and s not in ids:
+            ids.append(s)
+    return ids
+
+
+def _unique_preserve_order(values: list[str]) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        key = _canonical_event_id(value)
+        if value and key not in seen:
+            out.append(value)
+            seen.add(key)
+    return out
+
+
+def _build_event_rows_dataframe(events: list[tuple[str, Any]], loc_col: str | None) -> pd.DataFrame:
+    rows = []
+    for evid, row in events or []:
+        loc = _row_text(row, [loc_col], "N/D") if loc_col else "N/D"
+        rows.append(
+            {
+                "EventID": evid,
+                "Event Type": _row_text(
+                    row,
+                    [
+                        "Event Type", "EVENT TYPE", "EventType", "EVENTTYPE",
+                        "Tipo Evento", "TIPO EVENTO", "Tipo de Evento", "TYPE",
+                    ],
+                    "N/D",
+                ),
+                "LOCATION": loc,
+                "Description": _description_from_row(row),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _build_input_events_context_md(events: list[tuple[str, Any]], loc_col: str | None) -> str:
+    if not events:
+        return ""
+
+    lines = [
+        "=== EVENTOS_INFORMADOS_PELO_USUARIO ===",
+        "EventID\tEvent Type\tLOCATION\tDescription",
+    ]
+    for evid, row in events:
+        loc = _row_text(row, [loc_col], "N/D") if loc_col else "N/D"
+        event_type = _row_text(
+            row,
+            [
+                "Event Type", "EVENT TYPE", "EventType", "EVENTTYPE",
+                "Tipo Evento", "TIPO EVENTO", "Tipo de Evento", "TYPE",
+            ],
+            "N/D",
+        )
+        desc = _description_from_row(row).replace("\n", " ").strip()
+        lines.append(f"{evid}\t{event_type}\t{loc}\t{desc}")
+    return "\n".join(lines) + "\n"
+
+
+def _truncate_text(text: str, max_chars: int) -> str:
+    text = str(text or "")
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars].rstrip() + "\n\n[conteudo truncado para manter a conversa dentro do limite do modelo]"
 
 
 def _build_hits_md_table(hits, loc_col: str | None) -> str:
@@ -154,13 +307,50 @@ def _build_prompt3_deterministic_reply(
     return "\n".join(lines)
 
 
+def _sanitize_model_reply(reply: str) -> str:
+    reply = str(reply or "").strip() or "(sem conteudo)"
+    internal_markers = (
+        "REGRAS OBRIGAT",
+        "EVENTOS_OBRIGATORIOS",
+        "WS_MATCHES:",
+        "PRECURSORES_MATCHES:",
+        "CP_MATCHES:",
+    )
+    reply_lines = []
+    for line in reply.splitlines():
+        upper = line.strip().upper()
+        if any(upper.startswith(marker) for marker in internal_markers):
+            continue
+        reply_lines.append(line)
+    reply = "\n".join(reply_lines).strip() or "(sem conteudo)"
+
+    if re.search(r"\bws\s*(id|code)\b|\bws\s*\d+\b", reply, flags=re.IGNORECASE):
+        reply = re.sub(r"\bWS\s*(ID|Code)\b", "WS", reply, flags=re.IGNORECASE)
+        reply = re.sub(r"\bWS\s*\d+\b", "WS", reply, flags=re.IGNORECASE)
+
+    reply = re.sub(r"Contribui\S*\s+Principal", "Condicionantes de Performance", reply, flags=re.IGNORECASE)
+    reply = re.sub(
+        r"Fatores\s+de\s+Contribui\S*\s+Principal\s*\(\s*CP\s*\)",
+        "Condicionantes de Performance (CP)",
+        reply,
+        flags=re.IGNORECASE,
+    )
+    return reply
+
+
 def clear_chat():
     st.session_state["chat"] = []
     st.session_state["draft_prompt"] = ""
     st.session_state["analysis_text"] = ""
+    st.session_state["event_id_text"] = ""
     st.session_state["upld_texts"] = []
     st.session_state["last_upload_fingerprint"] = None
-    for k in ["messages", "history", "chat_messages", "last_reply", "last_ctx", "last_hits"]:
+    for k in [
+        "messages", "history", "chat_messages", "last_reply", "last_ctx", "last_hits",
+        "initial_analysis", "analysis_context", "analysis_guardrails", "analysis_cp_glossary",
+        "analysis_required_events", "analysis_match_blocks", "analysis_context_summary",
+        "followup_messages",
+    ]:
         if k in st.session_state:
             del st.session_state[k]
 
@@ -177,9 +367,18 @@ st.title("SAFETY • CHAT")
 ss = st.session_state
 ss.setdefault("draft_prompt", "")
 ss.setdefault("analysis_text", "")
+ss.setdefault("event_id_text", "")
 ss.setdefault("upld_texts", [])
 ss.setdefault("chat", [])
 ss.setdefault("last_upload_fingerprint", None)
+ss.setdefault("initial_analysis", "")
+ss.setdefault("analysis_context", "")
+ss.setdefault("analysis_guardrails", "")
+ss.setdefault("analysis_cp_glossary", "")
+ss.setdefault("analysis_required_events", "")
+ss.setdefault("analysis_match_blocks", "")
+ss.setdefault("analysis_context_summary", {})
+ss.setdefault("followup_messages", [])
 
 # carregamentos silenciosos
 _ = load_datasets_context(cfg.DATASETS_CONTEXT_PATH)
@@ -296,7 +495,16 @@ draft = st.text_area(
     placeholder="Digite aqui suas instruções para o modelo (ex: 'Analise os eventos', 'Liste WS', etc.)..."
 )
 
-st.subheader("Texto de análise (para Sphera)")
+st.subheader("EventID(s) do Sphera (opcional)")
+event_id_text = st.text_area(
+    "EventIDs",
+    key="event_id_text",
+    height=80,
+    label_visibility="collapsed",
+    placeholder="Informe um ou mais EventIDs separados por virgula, ponto e virgula ou quebra de linha.",
+)
+
+st.subheader("Texto de analise complementar")
 analysis = st.text_area(
     "Análise", 
     key="analysis_text", 
@@ -330,7 +538,7 @@ if upl is not None:
 
 c1, c2 = st.columns([1, 1])
 with c1:
-    go_btn = st.button("Enviar para o chat", type="primary")
+    go_btn = st.button("Gerar analise inicial", type="primary")
 with c2:
     st.button("Limpar chat e campos", on_click=clear_chat)
 
@@ -340,12 +548,31 @@ if go_btn:
     progress_box.info("⏳ Processando consulta (na primeira execução pode demorar para carregar embeddings/modelo)...")
 
     # ✅ Retrieval usa texto de análise + uploads (não usa o prompt como fallback)
+    selected_event_ids = _parse_event_ids(event_id_text)
+    input_events, missing_event_ids = _lookup_sphera_events_by_ids(df_sph, selected_event_ids)
+    input_event_descriptions = [_description_from_row(row) for _, row in input_events]
+
+    if missing_event_ids:
+        st.warning("EventID(s) nao encontrado(s) no Sphera local: " + ", ".join(missing_event_ids))
+
+    if input_events:
+        st.subheader("Evento(s) informado(s) como contexto")
+        st.dataframe(
+            _build_event_rows_dataframe(input_events, get_sphera_location_col(df_sph)),
+            use_container_width=True,
+            hide_index=True,
+        )
+
     retrieval_base = analysis.strip() if isinstance(analysis, str) else ""
-    retrieval_parts = [retrieval_base] + (ss.upld_texts or [])
+    retrieval_parts = input_event_descriptions + [retrieval_base] + (ss.upld_texts or [])
     query_for_retrieval = "\n\n".join([p for p in retrieval_parts if p]).strip()
 
     # input do chat pode ter tudo (prompt + análise + uploads)
-    user_parts = [draft, analysis] + (ss.upld_texts or [])
+    input_events_block = _build_input_events_context_md(
+        input_events,
+        get_sphera_location_col(df_sph) if isinstance(df_sph, pd.DataFrame) else None,
+    )
+    user_parts = [draft, input_events_block, analysis] + (ss.upld_texts or [])
     user_input = "\n\n".join([p for p in user_parts if p]).strip()
 
     # sempre inicializa (evita NameError)
@@ -470,9 +697,12 @@ if go_btn:
     # Weak Signals: ocultado da saída conforme solicitado
 
     # 4) contexto e guardrails
-    allowed_event_ids = _safe_event_ids_from_hits(hits)
+    allowed_event_ids = _unique_preserve_order(
+        _safe_event_ids_from_event_rows(input_events) + _safe_event_ids_from_hits(hits)
+    )
 
     ctx_full = "\n".join([
+        input_events_block,
         build_sphera_context_md(hits, loc_col),
         build_dic_matches_md(dic_res),
     ])
@@ -524,7 +754,9 @@ if go_btn:
         + ("\n".join([f"- {eid}" for eid in allowed_event_ids]) if allowed_event_ids else "- (nenhum)")
     )
 
-    prompt3_mode = isinstance(sel_prompt, str) and ("weak signals" in sel_prompt.lower())
+    prompt3_mode = isinstance(sel_prompt, str) and (
+        "weak signals" in sel_prompt.lower() or "sinais fracos" in sel_prompt.lower()
+    )
 
     if prompt3_mode:
         reply = _build_prompt3_deterministic_reply(
@@ -583,13 +815,86 @@ if go_btn:
 
     progress_box.success("✅ Processamento concluído.")
 
-    ss.chat.append({"role": "assistant", "content": reply})
+    ss.initial_analysis = reply
+    ss.analysis_context = ctx_full
+    ss.analysis_guardrails = guardrails
+    ss.analysis_cp_glossary = cp_glossary
+    ss.analysis_required_events = required_events_block
+    ss.analysis_match_blocks = ws_block + "\n\n" + prec_block + "\n\n" + cp_block
+    ss.analysis_context_summary = {
+        "event_ids_informados": _safe_event_ids_from_event_rows(input_events),
+        "event_ids_recuperados": _safe_event_ids_from_hits(hits),
+        "ws": ws_list,
+        "precursores": prec_list,
+        "cp": cp_list,
+    }
+    ss.followup_messages = []
+    ss.chat = [{"role": "assistant", "content": reply}]
+
+# ---------------- Follow-up chat ----------------
+followup_question = None
+if ss.get("initial_analysis"):
+    followup_question = st.chat_input(
+        "Pergunte algo sobre a analise, peca aprofundamento ou acrescente novas informacoes..."
+    )
+
+if followup_question:
+    ss.chat.append({"role": "user", "content": followup_question})
+
+    followup_system = (
+        "Voce esta em modo de conversa investigativa multi-turno do SAFETY CHAT. "
+        "A analise inicial ja foi gerada. Responda apenas a nova pergunta do usuario, "
+        "usando a analise inicial, o contexto recuperado e os eventos Sphera autorizados. "
+        "Nao repita a estrutura completa da analise inicial, a menos que o usuario peca explicitamente. "
+        "Se o usuario trouxer novas informacoes, integre-as como complemento e deixe claro quando uma nova "
+        "rodada de recuperacao for recomendada."
+    )
+    messages = [
+        {"role": "system", "content": "Voce e o SAFETY CHAT. Seja preciso, rastreavel e nao alucine."},
+        {"role": "system", "content": followup_system},
+        {"role": "system", "content": ss.get("analysis_cp_glossary", "")},
+        {"role": "system", "content": ss.get("analysis_guardrails", "")},
+        {"role": "system", "content": ss.get("analysis_required_events", "")},
+        {"role": "system", "content": ss.get("analysis_match_blocks", "")},
+        {
+            "role": "system",
+            "content": "ANALISE_INICIAL:\n" + _truncate_text(ss.get("initial_analysis", ""), 12000),
+        },
+        {
+            "role": "system",
+            "content": "CONTEXTO_RAG_DA_ANALISE_INICIAL:\n" + _truncate_text(ss.get("analysis_context", ""), 16000),
+        },
+    ]
+    messages.extend(ss.get("followup_messages", [])[-8:])
+    messages.append({"role": "user", "content": followup_question})
+
+    try:
+        if not cfg.OLLAMA_API_KEY:
+            followup_reply = (
+                "Falha ao consultar o modelo: OLLAMA_API_KEY nao configurada. "
+                "Defina a variavel de ambiente/secrets e tente novamente."
+            )
+        else:
+            with st.spinner("Respondendo ao follow-up..."):
+                res = chat(messages, stream=False, timeout=int(cfg.OLLAMA_TIMEOUT))
+            followup_reply = res.get("message", {}).get("content", "(sem conteudo)")
+    except Exception as e:
+        followup_reply = f"Falha ao consultar o modelo: {e}"
+
+    followup_reply = _sanitize_model_reply(followup_reply)
+    ss.followup_messages.extend(
+        [
+            {"role": "user", "content": followup_question},
+            {"role": "assistant", "content": followup_reply},
+        ]
+    )
+    ss.chat.append({"role": "assistant", "content": followup_reply})
 
 # ---------------- History ----------------
 if ss.get("chat"):
     st.divider()
     st.subheader("Histórico")
-    only_assistant = [m for m in ss.chat if m.get("role") == "assistant"]
-    for m in only_assistant[-10:]:
-        with st.chat_message("assistant"):
+    for m in ss.chat[-12:]:
+        role = m.get("role", "assistant")
+        with st.chat_message(role):
             st.markdown(m.get("content", ""))
