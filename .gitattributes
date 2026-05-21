@@ -1,6 +1,2 @@
-*.pdf filter=lfs diff=lfs merge=lfs -text
-*.docx filter=lfs diff=lfs merge=lfs -text
-*.npz filter=lfs diff=lfs merge=lfs -text
-data/analytics/*.npz filter=lfs diff=lfs merge=lfs -text
-data/analytics/*.joblib filter=lfs diff=lfs merge=lfs -text
-data/analytics/*.parquet filter=lfs diff=lfs merge=lfs -text
+# Git LFS is disabled for the Streamlit deployment.
+# Runtime artifacts in data/analytics are stored as regular Git blobs.
