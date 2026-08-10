@@ -6,6 +6,47 @@ O Safety Chat consome artefatos estaticos em `data/analytics`. As fontes monitor
 ficam em `data/xlsx` e `data/docs`, e o estado esperado dessas fontes fica registrado
 em `data/analytics/manifest.json`.
 
+### Rotina recomendada: atualizacao local segura
+
+Para atualizar os artefatos sem digitar comandos, execute na raiz do repositorio:
+
+```text
+Atualizar_Analytics_SafetyChat.bat
+```
+
+Essa rotina chama `tools/update_analytics_local.py` e faz o processo em etapas:
+
+1. verifica se houve mudanca monitorada;
+2. se apenas `data/docs` mudou, valida os artefatos atuais e atualiza somente o manifesto;
+3. se `data/xlsx` mudou, gera os novos artefatos em `.analytics_build_tmp`;
+4. valida os arquivos gerados antes de tocar em `data/analytics`;
+5. cria backup dos artefatos atuais em `.analytics_backups`;
+6. substitui os arquivos de `data/analytics` somente depois da validacao;
+7. valida novamente os arquivos finais e confere se o manifesto ficou sincronizado.
+
+Se algum erro ocorrer durante a substituicao, a rotina tenta restaurar o backup. Ao final,
+revise as alteracoes no GitHub Desktop, faca commit e push.
+
+Tambem e possivel executar a rotina pelo Python:
+
+```powershell
+python tools/update_analytics_local.py
+```
+
+Opcoes uteis:
+
+```powershell
+python tools/update_analytics_local.py --force
+python tools/update_analytics_local.py --dry-run
+python tools/update_analytics_local.py --families sphera
+python tools/update_analytics_local.py --families ws,precursors,cp
+```
+
+Por padrao, `--families auto` tenta reconstruir apenas a familia associada a planilha
+alterada. Se detectar uma planilha nova ou sem mapeamento conhecido, reconstrui todas.
+
+### Comandos manuais do gerador
+
 Verificar se as fontes mudaram:
 
 ```powershell
