@@ -4,6 +4,7 @@
       "dimensions": 384,
       "dtype": "float32",
       "exists": true,
+      "hash_strategy": "raw",
       "matrix_key": "embeddings",
       "normalized": true,
       "path": "data/analytics/cp_embeddings.npz",
@@ -14,6 +15,7 @@
     },
     "data/analytics/cp_labels.jsonl": {
       "exists": true,
+      "hash_strategy": "raw",
       "path": "data/analytics/cp_labels.jsonl",
       "readable": true,
       "rows": 30,
@@ -31,6 +33,7 @@
         "bag_en"
       ],
       "exists": true,
+      "hash_strategy": "raw",
       "path": "data/analytics/cp_labels.parquet",
       "readable": true,
       "rows": 30,
@@ -39,6 +42,7 @@
     },
     "data/analytics/prec_embeddings_pt.jsonl": {
       "exists": true,
+      "hash_strategy": "raw",
       "path": "data/analytics/prec_embeddings_pt.jsonl",
       "readable": true,
       "rows": 67,
@@ -49,6 +53,7 @@
       "dimensions": 384,
       "dtype": "float32",
       "exists": true,
+      "hash_strategy": "raw",
       "matrix_key": "embeddings",
       "normalized": true,
       "path": "data/analytics/prec_embeddings_pt.npz",
@@ -66,6 +71,7 @@
         "label"
       ],
       "exists": true,
+      "hash_strategy": "raw",
       "path": "data/analytics/prec_embeddings_pt.parquet",
       "readable": true,
       "rows": 67,
@@ -86,6 +92,7 @@
         "Risk Area"
       ],
       "exists": true,
+      "hash_strategy": "raw",
       "path": "data/analytics/sphera.parquet",
       "readable": true,
       "rows": 3950,
@@ -96,6 +103,7 @@
       "dimensions": 384,
       "dtype": "float32",
       "exists": true,
+      "hash_strategy": "raw",
       "matrix_key": "embeddings",
       "normalized": true,
       "path": "data/analytics/sphera_embeddings.npz",
@@ -106,6 +114,7 @@
     },
     "data/analytics/ws_embeddings_pt.jsonl": {
       "exists": true,
+      "hash_strategy": "raw",
       "path": "data/analytics/ws_embeddings_pt.jsonl",
       "readable": true,
       "rows": 90,
@@ -116,6 +125,7 @@
       "dimensions": 384,
       "dtype": "float32",
       "exists": true,
+      "hash_strategy": "raw",
       "matrix_key": "embeddings",
       "normalized": true,
       "path": "data/analytics/ws_embeddings_pt.npz",
@@ -131,6 +141,7 @@
         "lang"
       ],
       "exists": true,
+      "hash_strategy": "raw",
       "path": "data/analytics/ws_embeddings_pt.parquet",
       "readable": true,
       "rows": 90,
@@ -138,30 +149,12 @@
       "size": 5436
     }
   },
-  "build_summary": {
-    "cp": {
-      "dimensions": 384,
-      "rows": 30
-    },
-    "precursors": {
-      "dimensions": 384,
-      "rows": 67
-    },
-    "sphera": {
-      "dimensions": 384,
-      "rows": 3950
-    },
-    "ws": {
-      "dimensions": 384,
-      "rows": 90
-    }
-  },
   "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
-  "generated_at": "2026-08-10T13:09:59.459431+00:00",
+  "generated_at": "2026-08-10T13:36:17.094762+00:00",
   "generated_by": "tools/build_analytics.py",
   "manifest_version": 1,
-  "mode": "build",
-  "pipeline_version": "0.1.0",
+  "mode": "manifest-only",
+  "pipeline_version": "0.1.1",
   "source_dirs": [
     "data/xlsx",
     "data/docs"
@@ -175,91 +168,109 @@
   ],
   "sources": {
     "data/docs/P-48_Sumario-Executivo.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/P-48_Sumario-Executivo.pdf",
-      "sha256": "c95f313e44b2095e3d4e724f68c5cdbac6e37329b9a1dc0932b7cb95bb7096b2",
+      "sha256": "1d505a7c83fdc935c2d4ddf7c3b2911238e77c228f6cd47a11de1a31ee7dfc2f",
       "size": 134
     },
     "data/docs/Relatorio-P-34.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/Relatorio-P-34.pdf",
-      "sha256": "306cb1f1b31d4bb5b1df89d1986e553a18ffbdf2f0ee05ec55d5f40bdde6c8a7",
+      "sha256": "b10dacc53b5fbcd9a4329ac119a74fedf99e2b7f0f2dd1aa5dfd24e63d672140",
       "size": 134
     },
     "data/docs/Relatorio-SS-83.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/Relatorio-SS-83.pdf",
-      "sha256": "e2aa4509c483f1e66ee621e2a8294243f6719282f7f02c28c1190975ea88fdc0",
+      "sha256": "e9e426ebf37dce30159e2f91e132ee42c8c8b5c626ec6359f77a21282dcc1b91",
       "size": 134
     },
     "data/docs/Relatorio_P-36.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/Relatorio_P-36.pdf",
-      "sha256": "1e3ff7c8a844c5dbab7408f1e2f6d04ddbf3e0a80da912ea27accfbb31aaa0a8",
+      "sha256": "f32676b70cd9dd8ff694da9d4c16ccfc12c500ec9fa8f9ed6f41bfe6d8f5a90a",
       "size": 134
     },
     "data/docs/Relatorio_SS_69_WestEminence_atualizado.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/Relatorio_SS_69_WestEminence_atualizado.pdf",
-      "sha256": "97c8b02fafc7084184f27fbe033cb5ca8dd668479ab65f7c70d64b963c6aeaa6",
+      "sha256": "f3d3cb86a011f77501011b02831d1d4ef50f2652d425704c47a501063f7519bb",
       "size": 135
     },
     "data/docs/Relatório Frade II_final.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/Relatório Frade II_final.pdf",
-      "sha256": "dab9c5500c54df681d995db947fc44af185352d65cd40db1a3fe1b4091a07aa8",
+      "sha256": "866b41c1acb8d15cd1d40db0b1559a2ec722ec4d15b909298981618ac22eb387",
       "size": 135
     },
     "data/docs/Sumario_Executivo_P-20_final.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/Sumario_Executivo_P-20_final.pdf",
-      "sha256": "2ac2085f217455c8e5de0fd9e3347c4b84d42ff07db3c4cda9fcb4dc253593dc",
+      "sha256": "99c78f5df0c3528d0ff083f9d44f6a84b9d4918b82d180548ee5b75abe7d1476",
       "size": 134
     },
     "data/docs/Sumário Executivo_Frade Área II Rev final.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/Sumário Executivo_Frade Área II Rev final.pdf",
-      "sha256": "0beda5245d8b3d7d5e3ea2118b9743d22a860fa6d9165b95059ca3540ea13a4c",
+      "sha256": "83e0ac979a8b47ef92ca15087a23fb08c42fb37b28e41cb58f83c6e619f60f92",
       "size": 134
     },
     "data/docs/TS Luxento Incident Anomaly Report FPSO ES_2021.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/TS Luxento Incident Anomaly Report FPSO ES_2021.pdf",
-      "sha256": "5e17f5856152f62f1067acddf447046adc297b3d5b2a035c119c03667ecf1c9e",
+      "sha256": "dbeeaf5261fb9973dec1daf078c2873a238f8e10c1e27dd7e5664a9748aa6c26",
       "size": 135
     },
     "data/docs/Tier 2 Methanol Release_2022.docx": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/Tier 2 Methanol Release_2022.docx",
-      "sha256": "ab72739b910288a5778cf9ea6a3bb738dbd9cb28081a37e3935dd8294a1207ab",
+      "sha256": "c223625e8df6dd1b6183640bafb493750a2aa7312cb63b743db7aafd1d3612d6",
       "size": 134
     },
     "data/docs/contexto_eso_chat.md": {
+      "hash_strategy": "raw",
       "path": "data/docs/contexto_eso_chat.md",
       "sha256": "78ca9e6bae61692f5057c0ec8fe18215dc739a613ba188f53ee7d08bd1d741df",
       "size": 12409
     },
     "data/docs/informativo_11-02-15.pdf": {
+      "hash_strategy": "git-lfs-pointer-normalized",
       "path": "data/docs/informativo_11-02-15.pdf",
-      "sha256": "d0a954fa6c7927186852b149df1e93d9571f9c598bf2eb0ccd9d46974e502f6c",
+      "sha256": "0ecc345f263abf97dbca1436df9a43b9f662c0f194b235df293f313d4a53baec",
       "size": 134
     },
     "data/xlsx/DicionarioWeakSignals.xlsx": {
+      "hash_strategy": "raw",
       "path": "data/xlsx/DicionarioWeakSignals.xlsx",
       "sha256": "a2cb5fa1abeeae4c3e28ac77822890531a5639c8c6c8d5c52f74a125c36db9ad",
       "size": 15134
     },
     "data/xlsx/GoSee.xlsx": {
+      "hash_strategy": "raw",
       "path": "data/xlsx/GoSee.xlsx",
       "sha256": "72197c0d0d67d6f04dc157d19b9d7bb54eb3754172a84099d9e27a726e19e3b8",
       "size": 632470
     },
     "data/xlsx/MapaTriplo_tratado.xlsx": {
+      "hash_strategy": "raw",
       "path": "data/xlsx/MapaTriplo_tratado.xlsx",
       "sha256": "996383083456f363fcffad5e4ff92bdd3848b02b20195cf584f07cb9cf31d561",
       "size": 167765
     },
     "data/xlsx/TRATADO_safeguardOffShore.xlsx": {
+      "hash_strategy": "raw",
       "path": "data/xlsx/TRATADO_safeguardOffShore.xlsx",
       "sha256": "bdb947334d838b33095cedba4986f843e2c40a5bc5a44791b9735e3055d6239e",
       "size": 837940
     },
     "data/xlsx/TaxonomiaCP_Por.xlsx": {
+      "hash_strategy": "raw",
       "path": "data/xlsx/TaxonomiaCP_Por.xlsx",
       "sha256": "94445c5a1a3c80dee3ee204d19f56b04d951531e49f01905da68ecd2e29c447b",
       "size": 14206
     },
     "data/xlsx/precursores_expandido.xlsx": {
+      "hash_strategy": "raw",
       "path": "data/xlsx/precursores_expandido.xlsx",
       "sha256": "a60c5a90d521caacb5707667382cb9b9e07105ae9cf02d0baf626071564a5a42",
       "size": 10999

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 MANIFEST_VERSION = 1
-PIPELINE_VERSION = "0.1.0"
+PIPELINE_VERSION = "0.1.1"
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 SOURCE_DIRS = ("data/xlsx", "data/docs")
@@ -37,19 +37,27 @@ def _rel(path: Path, repo_root: Path) -> str:
     return path.resolve().relative_to(repo_root.resolve()).as_posix()
 
 
-def _sha256(path: Path) -> str:
+def _sha256(path: Path) -> tuple[str, str]:
+    with path.open("rb") as f:
+        prefix = f.read(128)
+    if prefix.startswith(b"version https://git-lfs.github.com/spec/v1"):
+        data = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        return hashlib.sha256(data).hexdigest(), "git-lfs-pointer-normalized"
+
     h = hashlib.sha256()
     with path.open("rb") as f:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
-    return h.hexdigest()
+    return h.hexdigest(), "raw"
 
 
 def _file_record(path: Path, repo_root: Path) -> dict[str, Any]:
     stat = path.stat()
+    sha256, hash_strategy = _sha256(path)
     return {
         "path": _rel(path, repo_root),
-        "sha256": _sha256(path),
+        "sha256": sha256,
+        "hash_strategy": hash_strategy,
         "size": int(stat.st_size),
     }
 

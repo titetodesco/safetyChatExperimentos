@@ -1,2 +1,8 @@
 # Git LFS is disabled for the Streamlit deployment.
 # Runtime artifacts in data/analytics are stored as regular Git blobs.
+data/analytics/*.npz -text
+data/analytics/*.parquet -text
+data/analytics/*.joblib -text
+data/xlsx/*.xlsx -text
+data/docs/*.pdf -text
+data/docs/*.docx -text
