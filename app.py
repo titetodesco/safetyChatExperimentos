@@ -322,6 +322,7 @@ def _sanitize_model_reply(reply: str) -> str:
         upper = line.strip().upper()
         if any(upper.startswith(marker) for marker in internal_markers):
             continue
+        line = re.sub(r"^\s*>\s?", "", line)
         reply_lines.append(line)
     reply = "\n".join(reply_lines).strip() or "(sem conteudo)"
 
@@ -887,6 +888,7 @@ if followup_question:
         "A analise inicial ja foi gerada. Responda apenas a nova pergunta do usuario, "
         "usando a analise inicial, o contexto recuperado e os eventos Sphera autorizados. "
         "Nao repita a estrutura completa da analise inicial, a menos que o usuario peca explicitamente. "
+        "Nao use blockquote/citacao Markdown: nao comece linhas com o caractere '>'. "
         "Se o usuario trouxer novas informacoes, integre-as como complemento e deixe claro quando uma nova "
         "rodada de recuperacao for recomendada."
     )

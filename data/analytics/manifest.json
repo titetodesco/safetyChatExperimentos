@@ -150,11 +150,11 @@
     }
   },
   "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
-  "generated_at": "2026-08-10T13:36:17.094762+00:00",
+  "generated_at": "2026-08-10T13:46:53.349529+00:00",
   "generated_by": "tools/build_analytics.py",
   "manifest_version": 1,
   "mode": "manifest-only",
-  "pipeline_version": "0.1.1",
+  "pipeline_version": "0.1.2",
   "source_dirs": [
     "data/xlsx",
     "data/docs"
@@ -228,9 +228,9 @@
       "size": 134
     },
     "data/docs/contexto_eso_chat.md": {
-      "hash_strategy": "raw",
+      "hash_strategy": "text-normalized",
       "path": "data/docs/contexto_eso_chat.md",
-      "sha256": "78ca9e6bae61692f5057c0ec8fe18215dc739a613ba188f53ee7d08bd1d741df",
+      "sha256": "3138c11f543d598a69dc8507e8dcee24ad55043ef3681edb51b1422e22a44929",
       "size": 12409
     },
     "data/docs/informativo_11-02-15.pdf": {

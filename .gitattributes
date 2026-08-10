@@ -6,3 +6,5 @@ data/analytics/*.joblib -text
 data/xlsx/*.xlsx -text
 data/docs/*.pdf -text
 data/docs/*.docx -text
+data/docs/*.md text eol=lf
+data/docs/*.txt text eol=lf

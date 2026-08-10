@@ -8,11 +8,12 @@ from pathlib import Path
 from typing import Any
 
 MANIFEST_VERSION = 1
-PIPELINE_VERSION = "0.1.1"
+PIPELINE_VERSION = "0.1.2"
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 SOURCE_DIRS = ("data/xlsx", "data/docs")
 SOURCE_EXTENSIONS = (".xlsx", ".pdf", ".docx", ".md", ".txt")
+TEXT_SOURCE_EXTENSIONS = (".md", ".txt")
 
 RUNTIME_ARTIFACTS = (
     "data/analytics/sphera.parquet",
@@ -43,6 +44,9 @@ def _sha256(path: Path) -> tuple[str, str]:
     if prefix.startswith(b"version https://git-lfs.github.com/spec/v1"):
         data = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
         return hashlib.sha256(data).hexdigest(), "git-lfs-pointer-normalized"
+    if path.suffix.lower() in TEXT_SOURCE_EXTENSIONS:
+        data = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        return hashlib.sha256(data).hexdigest(), "text-normalized"
 
     h = hashlib.sha256()
     with path.open("rb") as f:
