@@ -9,8 +9,8 @@
       "path": "data/analytics/cp_embeddings.npz",
       "readable": true,
       "rows": 30,
-      "sha256": "08ffaa265a52d8dd77e741d24e598f59759a73686c50dc2ae71961ba4be35881",
-      "size": 46224
+      "sha256": "534d8fffe52d088d865b5b4cefea1339d31111ff4bd1b261b208751b8af3e084",
+      "size": 46940
     },
     "data/analytics/cp_labels.jsonl": {
       "exists": true,
@@ -21,14 +21,21 @@
       "size": 11704
     },
     "data/analytics/cp_labels.parquet": {
+      "columns": [
+        "label",
+        "dimensao",
+        "fator",
+        "sub1",
+        "sub2",
+        "bag_pt",
+        "bag_en"
+      ],
       "exists": true,
-      "format": "parquet",
-      "note": "Parquet valido; contagem de linhas nao inspecionada neste ambiente.",
       "path": "data/analytics/cp_labels.parquet",
       "readable": true,
-      "rows": null,
-      "sha256": "35d4ff4191d001cad0c5429df0faa4e54d7aec3a3cf3136360ee5eb7839e1977",
-      "size": 16129
+      "rows": 30,
+      "sha256": "fd4e4e08851ff0914c0ccd7aaaf65bf38e7d98f1a04061449b383f726097769e",
+      "size": 9934
     },
     "data/analytics/prec_embeddings_pt.jsonl": {
       "exists": true,
@@ -47,28 +54,43 @@
       "path": "data/analytics/prec_embeddings_pt.npz",
       "readable": true,
       "rows": 67,
-      "sha256": "0e6e60141de56b9720f6d59d167c81abadfd8050f15b199e3e7145e95cc49be2",
-      "size": 99030
+      "sha256": "a272c134565627a595799056050e28eb46ed49b756bcc3a5e927671f3e505e6b",
+      "size": 98889
     },
     "data/analytics/prec_embeddings_pt.parquet": {
+      "columns": [
+        "id",
+        "text",
+        "lang",
+        "hto",
+        "label"
+      ],
       "exists": true,
-      "format": "parquet",
-      "note": "Parquet valido; contagem de linhas nao inspecionada neste ambiente.",
       "path": "data/analytics/prec_embeddings_pt.parquet",
       "readable": true,
-      "rows": null,
-      "sha256": "6b998ab0993e109ebbf5165d0e8b926931ba023d26a03f8dbe41e29e3ef3bb1a",
+      "rows": 67,
+      "sha256": "6127010f1df9254183aa7de7d0bd672e3ade5f106fa474e8ce94d5c0a297716c",
       "size": 6389
     },
     "data/analytics/sphera.parquet": {
+      "columns": [
+        "Event ID",
+        "Event Type",
+        "Date Occurred",
+        "Location",
+        "Title",
+        "Description",
+        "Consequences",
+        "RAM Potential",
+        "Task / Activity",
+        "Risk Area"
+      ],
       "exists": true,
-      "format": "parquet",
-      "note": "Parquet valido; contagem de linhas nao inspecionada neste ambiente.",
       "path": "data/analytics/sphera.parquet",
       "readable": true,
-      "rows": null,
-      "sha256": "a04108e775b5814c02e1723c01382c1f91bd4462ee9d1b6cd3a176bd5d083a2b",
-      "size": 803955
+      "rows": 3950,
+      "sha256": "7ac3369682bc4f58b74836d3111ffbbde7cb452ea8ca50223001f4db6dc007e0",
+      "size": 804848
     },
     "data/analytics/sphera_embeddings.npz": {
       "dimensions": 384,
@@ -79,8 +101,8 @@
       "path": "data/analytics/sphera_embeddings.npz",
       "readable": true,
       "rows": 3950,
-      "sha256": "6f93d83cea080a2fb09ee0ca6d6be00662dea6b923b1dea4c91769c617788b35",
-      "size": 6078654
+      "sha256": "532b58b7c5b324b455e091086643f823dd6017f001532e991f80182930df55a5",
+      "size": 6484659
     },
     "data/analytics/ws_embeddings_pt.jsonl": {
       "exists": true,
@@ -99,25 +121,46 @@
       "path": "data/analytics/ws_embeddings_pt.npz",
       "readable": true,
       "rows": 90,
-      "sha256": "29d568a3858561f4d3ddcb71cc4b6ed298be000419afb3655aac68c564146339",
-      "size": 131045
+      "sha256": "ad15eb84569c8c551d28221440a290d1614814e5102f3aeae64e9e8a89a7a0fe",
+      "size": 131450
     },
     "data/analytics/ws_embeddings_pt.parquet": {
+      "columns": [
+        "id",
+        "text",
+        "lang"
+      ],
       "exists": true,
-      "format": "parquet",
-      "note": "Parquet valido; contagem de linhas nao inspecionada neste ambiente.",
       "path": "data/analytics/ws_embeddings_pt.parquet",
       "readable": true,
-      "rows": null,
-      "sha256": "59c31e88b4ff8ad2a8b06e918f70540d22339ce741f17d9a0eacd994ec7ec5b6",
-      "size": 5382
+      "rows": 90,
+      "sha256": "cf2049968da93bba0eaefd793c70e193bb302beb023b778ded518373a0a408f5",
+      "size": 5436
+    }
+  },
+  "build_summary": {
+    "cp": {
+      "dimensions": 384,
+      "rows": 30
+    },
+    "precursors": {
+      "dimensions": 384,
+      "rows": 67
+    },
+    "sphera": {
+      "dimensions": 384,
+      "rows": 3950
+    },
+    "ws": {
+      "dimensions": 384,
+      "rows": 90
     }
   },
   "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
-  "generated_at": "2026-08-05T17:34:52.582157+00:00",
+  "generated_at": "2026-08-10T13:09:59.459431+00:00",
   "generated_by": "tools/build_analytics.py",
   "manifest_version": 1,
-  "mode": "manifest-only",
+  "mode": "build",
   "pipeline_version": "0.1.0",
   "source_dirs": [
     "data/xlsx",
