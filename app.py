@@ -21,6 +21,7 @@ from core.data_loader import (
     load_prompts_md,
     load_dicts,
 )
+from core.analytics_manifest import get_refresh_status
 
 from core.sphera import filter_sphera, get_sphera_location_col, topk_similar
 from core.context_builder import (
@@ -380,6 +381,13 @@ ss.setdefault("analysis_match_blocks", "")
 ss.setdefault("analysis_context_summary", {})
 ss.setdefault("followup_messages", [])
 
+analytics_status = get_refresh_status(ROOT_DIR)
+if analytics_status.get("stale"):
+    st.warning(
+        "Fontes em data/docs ou data/xlsx mudaram, ou o manifesto ainda nao existe. "
+        "O Safety Chat continua usando os artefatos atuais em data/analytics."
+    )
+
 # carregamentos silenciosos
 _ = load_datasets_context(cfg.DATASETS_CONTEXT_PATH)
 prompts_md = load_prompts_md(cfg.PROMPTS_MD_PATH)
@@ -430,6 +438,39 @@ df_sph = _ensure_eventid_column(df_sph)
 
 # ---------------- Sidebar ----------------
 with st.sidebar:
+    with st.expander("Status dos dados", expanded=bool(analytics_status.get("stale"))):
+        if not analytics_status.get("manifest_exists"):
+            st.warning("Manifesto de analytics nao encontrado.")
+        elif analytics_status.get("stale"):
+            st.warning("Fontes alteradas desde a ultima geracao.")
+        else:
+            st.success("Artefatos sincronizados com as fontes.")
+
+        if analytics_status.get("manifest_generated_at"):
+            st.caption(f"Ultima geracao: {analytics_status['manifest_generated_at']}")
+        if analytics_status.get("manifest_embedding_model"):
+            st.caption(f"Modelo: {analytics_status['manifest_embedding_model']}")
+        st.caption(f"Fontes monitoradas: {analytics_status.get('source_count', 0)}")
+
+        diff = analytics_status.get("diff", {}) or {}
+        for label, key in [("Novos", "added"), ("Alterados", "changed"), ("Removidos", "removed")]:
+            items = diff.get(key, []) or []
+            if items:
+                st.markdown(f"**{label}:**")
+                for item in items[:8]:
+                    st.caption(f"- {item}")
+                if len(items) > 8:
+                    st.caption(f"... mais {len(items) - 8}")
+
+        missing = analytics_status.get("missing_artifacts", []) or []
+        if missing:
+            st.markdown("**Artefatos ausentes:**")
+            for item in missing[:8]:
+                st.caption(f"- {item}")
+
+        st.caption("Atualize com: python tools/build_analytics.py --build")
+
+    st.markdown("---")
     st.subheader("Assistente de Prompts")
     
     prompt_titles = [p['title'] for p in prompts_list]

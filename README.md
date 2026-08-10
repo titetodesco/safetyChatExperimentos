@@ -1,5 +1,46 @@
 Versão  - https://safety-chat.streamlit.app/ - app_safety_chat.py  originario do app_chat_novo_correto.py
 
+## Atualizacao dos artefatos de analytics (MVP)
+
+O Safety Chat consome artefatos estaticos em `data/analytics`. As fontes monitoradas
+ficam em `data/xlsx` e `data/docs`, e o estado esperado dessas fontes fica registrado
+em `data/analytics/manifest.json`.
+
+Verificar se as fontes mudaram:
+
+```powershell
+python tools/build_analytics.py --check
+```
+
+Atualizar somente o manifesto, sem recriar embeddings:
+
+```powershell
+python tools/build_analytics.py --manifest-only
+```
+
+Validar os artefatos atuais:
+
+```powershell
+python tools/build_analytics.py --validate
+```
+
+Reconstruir os artefatos usados pelo app atual:
+
+```powershell
+python tools/build_analytics.py --build
+```
+
+Tambem e possivel reconstruir apenas uma familia:
+
+```powershell
+python tools/build_analytics.py --build --families sphera
+python tools/build_analytics.py --build --families ws,precursors,cp
+```
+
+Depois de uma reconstrucao real, valide o app localmente, faca commit dos artefatos
+alterados em `data/analytics` e envie a branch para o GitHub. O Streamlit deve apenas
+consumir os artefatos versionados; a geracao pesada nao deve rodar no runtime do app.
+
 1) Estrutura recomendada de pastas
 eso-chat/
 ├─ app_chat.py                 # app principal (Streamlit)
